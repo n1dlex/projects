@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import psycopg2
 
-# Функція для створення з'єднання з базою даних
+# Function to create a database connection
 def get_connection():
     return psycopg2.connect(
         host='test.cjyyo648mw6r.eu-north-1.rds.amazonaws.com',
@@ -14,7 +14,7 @@ def get_connection():
         password='11111111'
     )
 
-# Функція для отримання даних з бази
+# Function to get data from the database
 def get_data():
     conn = get_connection()
     try:
@@ -59,7 +59,7 @@ def format_metric(value, format_type):
 def main():
     st.set_page_config(page_title="КРІ Дашборд", layout="wide")
     
-    # Використання CSS для покращення вигляду
+    # Use CSS for better appearance
     st.markdown("""
         <style>
         .metric-container {
@@ -88,7 +88,7 @@ def main():
         st.error(f"Помилка з'єднання з базою даних: {str(e)}")
         return
 
-    # Головні KPI у верхній частині
+    # Main KPI at the top
     st.markdown("### 📈 Ключові показники")
     col1, col2, col3, col4 = st.columns(4)
     
@@ -124,18 +124,34 @@ def main():
             </div>
         """, unsafe_allow_html=True)
 
-    # Вкладки для різних категорій КРІ
+    # Tabs for different KPI categories
     tab1, tab2, tab3 = st.tabs(["📡 Технічні КРІ", "💼 Бізнес КРІ", "🔧 Операційні КРІ"])
 
-    # Технічні показники
+    # Technical KPIs
     with tab1:
         st.markdown("## 📡 Технічні показники")
         
-        # Графіки в два стовпці
+        # Display average values
+        st.markdown("### Середні показники")
+        avg_download_speed = technical_df['download_speed'].mean()
+        avg_upload_speed = technical_df['upload_speed'].mean()
+        avg_packet_loss = technical_df['packet_loss'].mean()
+        avg_latency = technical_df['latency'].mean()
+        avg_jitter = technical_df['jitter'].mean()
+        avg_uptime = technical_df['uptime'].mean()
+
+        st.write(f"**Середня швидкість завантаження:** {format_metric(avg_download_speed, 'speed')}")
+        st.write(f"**Середня швидкість вивантаження:** {format_metric(avg_upload_speed, 'speed')}")
+        st.write(f"**Середня втрата пакетів:** {format_metric(avg_packet_loss, 'percentage')}")
+        st.write(f"**Середня затримка:** {format_metric(avg_latency, 'time')}")
+        st.write(f"**Середній джитер:** {format_metric(avg_jitter, 'time')}")
+        st.write(f"**Середній Uptime:** {format_metric(avg_uptime, 'percentage')}")
+
+        # Graphs in two columns
         col1, col2 = st.columns(2)
         
         with col1:
-            # Графік швидкостей
+            # Speed graph
             fig_speed = px.line(technical_df, x='timestamp', 
                                y=['download_speed', 'upload_speed'],
                                labels={'value': 'Швидкість (Mbps)', 
@@ -145,7 +161,7 @@ def main():
             fig_speed.update_layout(height=300)
             st.plotly_chart(fig_speed, use_container_width=True)
 
-            # Графік packet loss та uptime
+            # Packet loss and uptime graph
             fig_quality = px.line(technical_df, x='timestamp', 
                                  y=['packet_loss', 'uptime'],
                                  labels={'value': 'Відсотки (%)', 
@@ -156,7 +172,7 @@ def main():
             st.plotly_chart(fig_quality, use_container_width=True)
 
         with col2:
-            # Графік затримки та джитера
+            # Latency and jitter graph
             fig_latency = px.line(technical_df, x='timestamp', 
                                  y=['latency', 'jitter'],
                                  labels={'value': 'Мілісекунди (ms)', 
@@ -166,18 +182,30 @@ def main():
             fig_latency.update_layout(height=300)
             st.plotly_chart(fig_latency, use_container_width=True)
 
-        # Таблиця з можливістю сортування
+        # Sortable data table
         st.markdown("### 📋 Детальні дані")
         st.dataframe(technical_df, use_container_width=True)
 
-    # Бізнес показники
+    # Business KPIs
     with tab2:
         st.markdown("## 💼 Бізнес показники")
         
+        # Display average values
+        st.markdown("### Середні показники")
+        avg_arpu = business_df['arpu'].mean()
+        avg_churn_rate = business_df['churn_rate'].mean()
+        avg_nps = business_df['nps'].mean()
+        avg_cost_per_mb = business_df['cost_per_mb'].mean()
+
+        st.write(f"**Середня ARPU:** {format_metric(avg_arpu, 'money')}")
+        st.write(f"**Середня втрата клієнтів (Churn Rate):** {format_metric(avg_churn_rate, 'percentage')}")
+        st.write(f"**Середній NPS:** {avg_nps:.1f}")
+        st.write(f"**Середня вартість за MB:** {format_metric(avg_cost_per_mb, 'money')}")
+
         col1, col2 = st.columns(2)
         
         with col1:
-            # ARPU та Cost per MB
+            # ARPU and Cost per MB
             fig_arpu = make_subplots(specs=[[{"secondary_y": True}]])
             fig_arpu.add_trace(
                 go.Scatter(x=business_df['date'], y=business_df['arpu'],
@@ -185,72 +213,90 @@ def main():
                 secondary_y=False)
             fig_arpu.add_trace(
                 go.Scatter(x=business_df['date'], y=business_df['cost_per_mb'],
-                          name="Cost per MB", line=dict(color="#ff7f0e")),
+                          name="Вартість за MB", line=dict(color="#ff7f0e")),
                 secondary_y=True)
-            fig_arpu.update_layout(title="💰 ARPU та вартість за MB", height=300)
-            fig_arpu.update_yaxes(title_text="ARPU (₴)", secondary_y=False)
-            fig_arpu.update_yaxes(title_text="Вартість за MB (₴)", secondary_y=True)
+
+            fig_arpu.update_layout(title_text="💰 ARPU та вартість за MB", height=300)
+            fig_arpu.update_yaxes(title_text="ARPU", secondary_y=False)
+            fig_arpu.update_yaxes(title_text="Вартість за MB", secondary_y=True)
             st.plotly_chart(fig_arpu, use_container_width=True)
 
         with col2:
-            # Churn rate та NPS
-            fig_churn = make_subplots(specs=[[{"secondary_y": True}]])
-            fig_churn.add_trace(
+            # Churn Rate and NPS
+            fig_churn_nps = make_subplots(specs=[[{"secondary_y": True}]])
+            fig_churn_nps.add_trace(
                 go.Scatter(x=business_df['date'], y=business_df['churn_rate'],
-                          name="Churn Rate", line=dict(color="#d62728")),
+                          name="Churn Rate", line=dict(color="#1f77b4")),
                 secondary_y=False)
-            fig_churn.add_trace(
+            fig_churn_nps.add_trace(
                 go.Scatter(x=business_df['date'], y=business_df['nps'],
-                          name="NPS", line=dict(color="#2ca02c")),
+                          name="NPS", line=dict(color="#ff7f0e")),
                 secondary_y=True)
-            fig_churn.update_layout(title="📉 Churn Rate та NPS", height=300)
-            fig_churn.update_yaxes(title_text="Churn Rate (%)", secondary_y=False)
-            fig_churn.update_yaxes(title_text="NPS", secondary_y=True)
-            st.plotly_chart(fig_churn, use_container_width=True)
 
-        # Таблиця з можливістю сортування
+            fig_churn_nps.update_layout(title_text="📉 Втрата клієнтів та NPS", height=300)
+            fig_churn_nps.update_yaxes(title_text="Churn Rate", secondary_y=False)
+            fig_churn_nps.update_yaxes(title_text="NPS", secondary_y=True)
+            st.plotly_chart(fig_churn_nps, use_container_width=True)
+
+        # Sortable data table
         st.markdown("### 📋 Детальні дані")
         st.dataframe(business_df, use_container_width=True)
 
-    # Операційні показники
+    # Operational KPIs
     with tab3:
         st.markdown("## 🔧 Операційні показники")
         
-        col1, col2 = st.columns(2)
+        # Display average values
+        st.markdown("### Середні показники")
+        avg_resolution_time = operational_df['avg_resolution_time'].mean()
+        avg_support_tickets = operational_df['support_tickets'].mean()
+        avg_fcr_rate = operational_df['fcr_rate'].mean()
+        avg_new_connections = operational_df['new_connections'].mean()
+        avg_capacity_utilization = operational_df['capacity_utilization'].mean()
 
+        st.write(f"**Середній час вирішення:** {format_metric(avg_resolution_time, 'time')}")
+        st.write(f"**Середня кількість запитів у службу підтримки:** {avg_support_tickets:.1f}")
+        st.write(f"**Середній FCR Rate:** {format_metric(avg_fcr_rate, 'percentage')}")
+        st.write(f"**Середня кількість нових підключень:** {avg_new_connections:.1f}")
+        st.write(f"**Середня завантаженість потужностей:** {format_metric(avg_capacity_utilization, 'percentage')}")
+
+        col1, col2 = st.columns(2)
+        
         with col1:
-            # Час вирішення проблем та нові з'єднання
+            # Avg Resolution Time and New Connections
             fig_resolution = make_subplots(specs=[[{"secondary_y": True}]])
             fig_resolution.add_trace(
                 go.Scatter(x=operational_df['date'], y=operational_df['avg_resolution_time'],
-                          name="Середній час вирішення", line=dict(color="#9467bd")),
+                          name="Час вирішення", line=dict(color="#1f77b4")),
                 secondary_y=False)
             fig_resolution.add_trace(
                 go.Scatter(x=operational_df['date'], y=operational_df['new_connections'],
-                          name="Нові з'єднання", line=dict(color="#8c564b")),
+                          name="Нові підключення", line=dict(color="#ff7f0e")),
                 secondary_y=True)
-            fig_resolution.update_layout(title="🕒 Час вирішення проблем та нові з'єднання", height=300)
-            fig_resolution.update_yaxes(title_text="Середній час вирішення (години)", secondary_y=False)
-            fig_resolution.update_yaxes(title_text="Нові з'єднання", secondary_y=True)
+
+            fig_resolution.update_layout(title_text="⏳ Час вирішення та нові підключення", height=300)
+            fig_resolution.update_yaxes(title_text="Час вирішення (години)", secondary_y=False)
+            fig_resolution.update_yaxes(title_text="Нові підключення", secondary_y=True)
             st.plotly_chart(fig_resolution, use_container_width=True)
 
         with col2:
-            # Показники підтримки
-            fig_support = make_subplots(specs=[[{"secondary_y": True}]])
-            fig_support.add_trace(
+            # Support Tickets and Capacity Utilization
+            fig_tickets = make_subplots(specs=[[{"secondary_y": True}]])
+            fig_tickets.add_trace(
                 go.Scatter(x=operational_df['date'], y=operational_df['support_tickets'],
-                          name="Тикети підтримки", line=dict(color="#e377c2")),
+                          name="Запити до підтримки", line=dict(color="#1f77b4")),
                 secondary_y=False)
-            fig_support.add_trace(
+            fig_tickets.add_trace(
                 go.Scatter(x=operational_df['date'], y=operational_df['capacity_utilization'],
-                          name="Використання потужності", line=dict(color="#7f7f7f")),
+                          name="Завантаженість потужностей", line=dict(color="#ff7f0e")),
                 secondary_y=True)
-            fig_support.update_layout(title="📊 Показники підтримки", height=300)
-            fig_support.update_yaxes(title_text="Тикети підтримки", secondary_y=False)
-            fig_support.update_yaxes(title_text="Використання потужності (%)", secondary_y=True)
-            st.plotly_chart(fig_support, use_container_width=True)
 
-        # Таблиця з можливістю сортування
+            fig_tickets.update_layout(title_text="📊 Запити до підтримки та завантаженість потужностей", height=300)
+            fig_tickets.update_yaxes(title_text="Запити до підтримки", secondary_y=False)
+            fig_tickets.update_yaxes(title_text="Завантаженість потужностей", secondary_y=True)
+            st.plotly_chart(fig_tickets, use_container_width=True)
+
+        # Sortable data table
         st.markdown("### 📋 Детальні дані")
         st.dataframe(operational_df, use_container_width=True)
 
