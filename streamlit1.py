@@ -256,7 +256,7 @@ def main():
                 </div>
             """, unsafe_allow_html=True)
 
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
 
         with col1:
             st.markdown(f"""
@@ -271,6 +271,14 @@ def main():
                 <div class="metric-container">
                     <div class="metric-title">Вартість за МБ</div>
                     <div class="metric-value">{format_metric(business_df['cost_per_mb'].mean(), '')}</div>
+                </div>
+            """, unsafe_allow_html=True)
+            
+        with col3:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">кількість коритувачів</div>
+                    <div class="metric-value">{format_metric(business_df['number_of_customers'].mean(), '')}</div>
                 </div>
             """, unsafe_allow_html=True)
 
