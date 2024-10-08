@@ -269,7 +269,7 @@ def main():
         with col2:
             st.markdown(f"""
                 <div class="metric-container">
-                    <div class="metric-title">кількість коритувачів</div>
+                    <div class="metric-title">кількість користувачів</div>
                     <div class="metric-value">{format_metric(business_df['number_of_customers'].mean(), '')}</div>
                 </div>
             """, unsafe_allow_html=True)
