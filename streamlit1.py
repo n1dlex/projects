@@ -168,7 +168,7 @@ def main():
 
         # Таблиця з можливістю сортування
         st.markdown("### 📋 Детальні дані")
-        st.dataframe(technical_df.style.highlight_max(axis=0), use_container_width=True)
+        st.dataframe(technical_df, use_container_width=True)
 
     # Бізнес показники
     with tab2:
@@ -210,7 +210,7 @@ def main():
 
         # Таблиця з можливістю сортування
         st.markdown("### 📋 Детальні дані")
-        st.dataframe(business_df.style.highlight_max(axis=0), use_container_width=True)
+        st.dataframe(business_df, use_container_width=True)
 
     # Операційні показники
     with tab3:
@@ -252,7 +252,7 @@ def main():
 
         # Таблиця з можливістю сортування
         st.markdown("### 📋 Детальні дані")
-        st.dataframe(operational_df.style.highlight_max(axis=0), use_container_width=True)
+        st.dataframe(operational_df, use_container_width=True)
 
 if __name__ == "__main__":
     main()
