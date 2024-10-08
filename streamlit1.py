@@ -256,6 +256,26 @@ def main():
                 </div>
             """, unsafe_allow_html=True)
 
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середній ARPU</div>
+                    <div class="metric-value">{format_metric(business_df['arpu'].mean(), 'money')}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середня втрата клієнтів</div>
+                    <div class="metric-value">{format_metric(business_df['churn_rate'].mean(), 'percentage')}</div>
+                </div>
+            """, unsafe_allow_html=True)
+
+        
+
         col1, col2, col3 = st.columns(3)
         
         with col1:
