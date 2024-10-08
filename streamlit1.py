@@ -62,21 +62,28 @@ def main():
     with tab1:
         st.header("Технічні показники")
 
-        # Відображення середніх значень технічних метрик
+        # Відображення значень та середніх значень технічних метрик
+        st.subheader("Технічні метрики")
         col1, col2, col3 = st.columns(3)
         with col1:
+            st.metric("Швидкість завантаження", f"{technical_df['download_speed'].iloc[0]:.2f} Mbps")
             st.metric("Середня швидкість завантаження", f"{technical_df['download_speed'].mean():.2f} Mbps")
         with col2:
+            st.metric("Швидкість відвантаження", f"{technical_df['upload_speed'].iloc[0]:.2f} Mbps")
             st.metric("Середня швидкість відвантаження", f"{technical_df['upload_speed'].mean():.2f} Mbps")
         with col3:
+            st.metric("Uptime", f"{technical_df['uptime'].iloc[0]:.2f}%")
             st.metric("Середній Uptime", f"{technical_df['uptime'].mean():.2f}%")
 
         col1, col2, col3 = st.columns(3)
         with col1:
+            st.metric("Packet Loss", f"{technical_df['packet_loss'].iloc[0]:.2f}%")
             st.metric("Середній Packet Loss", f"{technical_df['packet_loss'].mean():.2f}%")
         with col2:
-            st.metric("Середня Затримка (Latency)", f"{technical_df['latency'].mean():.2f} ms")
+            st.metric("Latency", f"{technical_df['latency'].iloc[0]:.2f} ms")
+            st.metric("Середня затримка", f"{technical_df['latency'].mean():.2f} ms")
         with col3:
+            st.metric("Jitter", f"{technical_df['jitter'].iloc[0]:.2f} ms")
             st.metric("Середній Jitter", f"{technical_df['jitter'].mean():.2f} ms")
 
         st.subheader("Таблиця технічних показників")
@@ -99,17 +106,22 @@ def main():
     with tab2:
         st.header("Бізнес показники")
 
-        # Відображення середніх значень бізнесових метрик
+        # Відображення значень та середніх значень бізнесових метрик
+        st.subheader("Бізнес метрики")
         col1, col2 = st.columns(2)
         with col1:
+            st.metric("ARPU", f"₴{business_df['arpu'].iloc[0]:.2f}")
             st.metric("Середній ARPU", f"₴{business_df['arpu'].mean():.2f}")
         with col2:
+            st.metric("Churn Rate", f"{business_df['churn_rate'].iloc[0]:.2f}%")
             st.metric("Середній Churn Rate", f"{business_df['churn_rate'].mean():.2f}%")
 
         col1, col2 = st.columns(2)
         with col1:
+            st.metric("NPS", f"{business_df['nps'].iloc[0]:.2f}")
             st.metric("Середній NPS", f"{business_df['nps'].mean():.2f}")
         with col2:
+            st.metric("Utilization Rate", f"{business_df['utilization_rate'].iloc[0]:.2f}%")
             st.metric("Середній Utilization Rate", f"{business_df['utilization_rate'].mean():.2f}%")
 
         st.subheader("Таблиця бізнес показників")
@@ -126,17 +138,22 @@ def main():
     with tab3:
         st.header("Операційні показники")
 
-        # Відображення середніх значень операційних метрик
+        # Відображення значень та середніх значень операційних метрик
+        st.subheader("Операційні метрики")
         col1, col2 = st.columns(2)
         with col1:
-            st.metric("Середній час вирішення (год)", f"{operational_df['avg_resolution_time'].mean():.2f}")
+            st.metric("Час вирішення (год)", f"{operational_df['avg_resolution_time'].iloc[0]:.2f}")
+            st.metric("Середній час вирішення", f"{operational_df['avg_resolution_time'].mean():.2f}")
         with col2:
+            st.metric("FCR Rate", f"{operational_df['fcr_rate'].iloc[0]:.2f}%")
             st.metric("Середній FCR Rate", f"{operational_df['fcr_rate'].mean():.2f}%")
 
         col1, col2 = st.columns(2)
         with col1:
+            st.metric("Кількість звернень", f"{operational_df['support_tickets'].iloc[0]:.0f}")
             st.metric("Середня кількість звернень", f"{operational_df['support_tickets'].mean():.0f}")
         with col2:
+            st.metric("Нові підключення", f"{operational_df['new_connections'].iloc[0]:.0f}")
             st.metric("Середні нові підключення", f"{operational_df['new_connections'].mean():.0f}")
 
         st.subheader("Таблиця операційних показників")
@@ -147,13 +164,9 @@ def main():
         fig_support = go.Figure()
         fig_support.add_trace(go.Bar(x=operational_df['date'], y=operational_df['support_tickets'], name='Кількість звернень'))
         fig_support.add_trace(go.Scatter(x=operational_df['date'], y=operational_df['avg_resolution_time'], mode='lines+markers',
-                                         name='Час вирішення (год)', yaxis='y2'))
-        fig_support.update_layout(
-            title='Звернення та час вирішення',
-            yaxis=dict(title='Кількість звернень'),
-            yaxis2=dict(title='Час вирішення (год)', overlaying='y', side='right'),
-            xaxis=dict(title='Дата'),
-        )
+                                         name='Час вирішення (год)'))
+        fig_support.update_layout(title='Кількість звернень і час вирішення',
+                                  xaxis_title='Дата', yaxis_title='Показники')
         st.plotly_chart(fig_support, use_container_width=True)
 
 if __name__ == "__main__":
