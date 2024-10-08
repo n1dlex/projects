@@ -3,47 +3,10 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import psycopg2
 
-# Функція для створення з'єднання з базою даних
-def get_connection():
-    return psycopg2.connect(
-        host='test.cjyyo648mw6r.eu-north-1.rds.amazonaws.com',
-        database='test',
-        user='postgres',
-        password='11111111'
-    )
-
-# Функція для отримання даних з бази
-def get_data():
-    conn = get_connection()
-
-    try:
-        technical_df = pd.read_sql("""
-            SELECT timestamp, download_speed, upload_speed, packet_loss, latency, jitter, uptime
-            FROM technical_kpi
-            ORDER BY timestamp DESC
-            LIMIT 24
-        """, conn)
-
-        business_df = pd.read_sql("""
-            SELECT date, arpu, churn_rate, nps, utilization_rate, cost_per_mb
-            FROM business_kpi
-            ORDER BY date DESC
-            LIMIT 30
-        """, conn)
-
-        operational_df = pd.read_sql("""
-            SELECT date, avg_resolution_time, support_tickets, fcr_rate, new_connections, capacity_utilization
-            FROM operational_kpi
-            ORDER BY date DESC
-            LIMIT 30
-        """, conn)
-
-    finally:
-        conn.close()
-
-    return technical_df, business_df, operational_df
+# Функції get_connection() і get_data() залишаються без змін
 
 def main():
     st.set_page_config(page_title="КРІ Дашборд", layout="wide")
@@ -55,14 +18,13 @@ def main():
         st.error(f"Помилка з'єднання з базою даних: {str(e)}")
         return
 
-    # Вкладки для різних категорій КРІ
     tab1, tab2, tab3 = st.tabs(["Технічні КРІ", "Бізнес КРІ", "Операційні КРІ"])
 
     # Технічні показники
     with tab1:
         st.header("Технічні показники")
 
-        # Відображення всіх середніх значень технічних метрик
+        # Метрики залишаються без змін
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("Середня швидкість завантаження", f"{technical_df['download_speed'].mean():.2f} Mbps")
@@ -77,24 +39,44 @@ def main():
         st.subheader("Таблиця технічних показників")
         st.dataframe(technical_df)
 
-        # Графік швидкості передачі даних
-        st.subheader("Графік швидкості передачі даних")
-        fig_speed = px.line(technical_df, x='timestamp', y=['download_speed', 'upload_speed'],
-                            title='Швидкість передачі даних', labels={'value': 'Швидкість (Mbps)', 'timestamp': 'Час'})
-        st.plotly_chart(fig_speed, use_container_width=True)
-
-        # Графік якості з'єднання
-        st.subheader("Графік якості з\'єднання")
-        fig_quality = px.line(technical_df, x='timestamp', y=['packet_loss', 'latency', 'jitter'],
-                              title="Показники якості з'єднання", 
-                              labels={'value': 'Показники (мс або %)', 'timestamp': 'Час'})
-        st.plotly_chart(fig_quality, use_container_width=True)
+        # Оновлені графіки для технічних КРІ
+        st.subheader("Графіки технічних показників")
+        
+        # Створюємо графік з двома у-осями для всіх технічних метрик
+        fig_technical = make_subplots(specs=[[{"secondary_y": True}]])
+        
+        # Додаємо швидкості на основну вісь
+        fig_technical.add_trace(
+            go.Scatter(x=technical_df['timestamp'], y=technical_df['download_speed'], name="Швидкість завантаження", line=dict(color="blue")),
+            secondary_y=False
+        )
+        fig_technical.add_trace(
+            go.Scatter(x=technical_df['timestamp'], y=technical_df['upload_speed'], name="Швидкість відвантаження", line=dict(color="green")),
+            secondary_y=False
+        )
+        
+        # Додаємо інші метрики на додаткову вісь
+        for column, color in zip(['latency', 'jitter', 'packet_loss', 'uptime'], ['red', 'orange', 'purple', 'brown']):
+            fig_technical.add_trace(
+                go.Scatter(x=technical_df['timestamp'], y=technical_df[column], name=column.title(), line=dict(color=color)),
+                secondary_y=True
+            )
+        
+        fig_technical.update_layout(
+            title="Всі технічні показники",
+            xaxis_title="Час",
+            height=600
+        )
+        fig_technical.update_yaxes(title_text="Швидкість (Mbps)", secondary_y=False)
+        fig_technical.update_yaxes(title_text="Інші показники", secondary_y=True)
+        
+        st.plotly_chart(fig_technical, use_container_width=True)
 
     # Бізнес показники
     with tab2:
         st.header("Бізнес показники")
 
-        # Відображення всіх середніх значень бізнесових метрик
+        # Метрики залишаються без змін
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("Середній ARPU", f"₴{business_df['arpu'].mean():.2f}")
@@ -108,25 +90,44 @@ def main():
         st.subheader("Таблиця бізнес показників")
         st.dataframe(business_df)
 
-        # Графік ARPU і Churn Rate
-        st.subheader("Графік ARPU і Churn Rate")
-        fig_business = px.line(business_df, x='date', y=['arpu', 'churn_rate'],
-                               title='Динаміка ARPU і Churn Rate', 
-                               labels={'value': 'Показники', 'date': 'Дата'})
+        # Оновлений графік для всіх бізнес КРІ
+        st.subheader("Графік всіх бізнес показників")
+        
+        fig_business = make_subplots(specs=[[{"secondary_y": True}]])
+        
+        # ARPU на основній осі
+        fig_business.add_trace(
+            go.Scatter(x=business_df['date'], y=business_df['arpu'], name="ARPU", line=dict(color="blue")),
+            secondary_y=False
+        )
+        
+        # Інші метрики на додатковій осі
+        for column, color in zip(['churn_rate', 'nps', 'utilization_rate'], ['red', 'green', 'purple']):
+            fig_business.add_trace(
+                go.Scatter(x=business_df['date'], y=business_df[column], name=column.replace('_', ' ').title(), line=dict(color=color)),
+                secondary_y=True
+            )
+        
+        # Додаємо cost_per_mb на окремий графік через різницю в масштабі
+        st.subheader("Графік вартості за MB")
+        fig_cost = px.line(business_df, x='date', y='cost_per_mb', title='Динаміка вартості за MB')
+        
+        fig_business.update_layout(
+            title="Бізнес показники",
+            xaxis_title="Дата",
+            height=500
+        )
+        fig_business.update_yaxes(title_text="ARPU (₴)", secondary_y=False)
+        fig_business.update_yaxes(title_text="Інші показники (%)", secondary_y=True)
+        
         st.plotly_chart(fig_business, use_container_width=True)
-
-        # Додатковий графік для NPS і Utilization Rate
-        st.subheader("Графік NPS і Utilization Rate")
-        fig_business2 = px.line(business_df, x='date', y=['nps', 'utilization_rate'],
-                                title='Динаміка NPS і Utilization Rate',
-                                labels={'value': 'Показники', 'date': 'Дата'})
-        st.plotly_chart(fig_business2, use_container_width=True)
+        st.plotly_chart(fig_cost, use_container_width=True)
 
     # Операційні показники
     with tab3:
         st.header("Операційні показники")
 
-        # Відображення всіх середніх значень операційних метрик
+        # Метрики залишаються без змін
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("Середній час вирішення (год)", f"{operational_df['avg_resolution_time'].mean():.2f}")
@@ -140,26 +141,46 @@ def main():
         st.subheader("Таблиця операційних показників")
         st.dataframe(operational_df)
 
-        # Графік звернень та часу вирішення
-        st.subheader("Графік звернень та часу вирішення")
-        fig_support = go.Figure()
-        fig_support.add_trace(go.Bar(x=operational_df['date'], y=operational_df['support_tickets'], name='Кількість звернень'))
-        fig_support.add_trace(go.Scatter(x=operational_df['date'], y=operational_df['avg_resolution_time'], mode='lines+markers',
-                                         name='Час вирішення (год)', yaxis='y2'))
-        fig_support.update_layout(
-            title='Звернення та час вирішення',
-            yaxis=dict(title='Кількість звернень'),
-            yaxis2=dict(title='Час вирішення (год)', overlaying='y', side='right'),
-            xaxis=dict(title='Дата'),
-        )
-        st.plotly_chart(fig_support, use_container_width=True)
+        # Оновлені графіки для операційних КРІ
+        st.subheader("Графіки операційних показників")
 
-        # Додатковий графік для FCR Rate і нових підключень
-        st.subheader("Графік FCR Rate і нових підключень")
-        fig_operational2 = px.line(operational_df, x='date', y=['fcr_rate', 'new_connections'],
-                                   title='Динаміка FCR Rate і нових підключень',
-                                   labels={'value': 'Показники', 'date': 'Дата'})
-        st.plotly_chart(fig_operational2, use_container_width=True)
+        # Створюємо графік з двома у-осями
+        fig_operational = make_subplots(specs=[[{"secondary_y": True}]])
+        
+        # Кількісні показники на основній осі
+        fig_operational.add_trace(
+            go.Bar(x=operational_df['date'], y=operational_df['support_tickets'], name="Кількість звернень"),
+            secondary_y=False
+        )
+        fig_operational.add_trace(
+            go.Bar(x=operational_df['date'], y=operational_df['new_connections'], name="Нові підключення"),
+            secondary_y=False
+        )
+        
+        # Відсоткові показники на додатковій осі
+        fig_operational.add_trace(
+            go.Scatter(x=operational_df['date'], y=operational_df['fcr_rate'], name="FCR Rate", line=dict(color="green")),
+            secondary_y=True
+        )
+        fig_operational.add_trace(
+            go.Scatter(x=operational_df['date'], y=operational_df['capacity_utilization'], name="Використання потужності", line=dict(color="red")),
+            secondary_y=True
+        )
+        fig_operational.add_trace(
+            go.Scatter(x=operational_df['date'], y=operational_df['avg_resolution_time'], name="Час вирішення", line=dict(color="orange")),
+            secondary_y=True
+        )
+        
+        fig_operational.update_layout(
+            title="Всі операційні показники",
+            xaxis_title="Дата",
+            barmode='group',
+            height=600
+        )
+        fig_operational.update_yaxes(title_text="Кількість", secondary_y=False)
+        fig_operational.update_yaxes(title_text="Відсотки та час", secondary_y=True)
+        
+        st.plotly_chart(fig_operational, use_container_width=True)
 
 if __name__ == "__main__":
     main()
