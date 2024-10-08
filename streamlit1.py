@@ -26,7 +26,7 @@ def get_data():
         """, conn)
 
         business_df = pd.read_sql("""
-            SELECT date, arpu, churn_rate, nps, utilization_rate, cost_per_mb, number_of_customers
+            SELECT date, arpu, churn_rate, nps,cost_per_mb, number_of_customers
             FROM business_kpi
             ORDER BY date DESC
             LIMIT 30
