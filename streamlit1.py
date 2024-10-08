@@ -131,21 +131,60 @@ def main():
     with tab1:
         st.markdown("## 📡 Технічні показники")
         
-        # Display average values
+        # Display average values in the same style
         st.markdown("### Середні показники")
-        avg_download_speed = technical_df['download_speed'].mean()
-        avg_upload_speed = technical_df['upload_speed'].mean()
-        avg_packet_loss = technical_df['packet_loss'].mean()
-        avg_latency = technical_df['latency'].mean()
-        avg_jitter = technical_df['jitter'].mean()
-        avg_uptime = technical_df['uptime'].mean()
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середня швидкість завантаження</div>
+                    <div class="metric-value">{format_metric(technical_df['download_speed'].mean(), 'speed')}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середня швидкість вивантаження</div>
+                    <div class="metric-value">{format_metric(technical_df['upload_speed'].mean(), 'speed')}</div>
+                </div>
+            """, unsafe_allow_html=True)
 
-        st.write(f"**Середня швидкість завантаження:** {format_metric(avg_download_speed, 'speed')}")
-        st.write(f"**Середня швидкість вивантаження:** {format_metric(avg_upload_speed, 'speed')}")
-        st.write(f"**Середня втрата пакетів:** {format_metric(avg_packet_loss, 'percentage')}")
-        st.write(f"**Середня затримка:** {format_metric(avg_latency, 'time')}")
-        st.write(f"**Середній джитер:** {format_metric(avg_jitter, 'time')}")
-        st.write(f"**Середній Uptime:** {format_metric(avg_uptime, 'percentage')}")
+        with col3:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середня втрата пакетів</div>
+                    <div class="metric-value">{format_metric(technical_df['packet_loss'].mean(), 'percentage')}</div>
+                </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("### Інші показники")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середня затримка</div>
+                    <div class="metric-value">{format_metric(technical_df['latency'].mean(), 'time')}</div>
+                </div>
+            """, unsafe_allow_html=True)
+
+        with col2:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середній джитер</div>
+                    <div class="metric-value">{format_metric(technical_df['jitter'].mean(), 'time')}</div>
+                </div>
+            """, unsafe_allow_html=True)
+
+        with st.container():
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середній Uptime</div>
+                    <div class="metric-value">{format_metric(technical_df['uptime'].mean(), 'percentage')}</div>
+                </div>
+            """, unsafe_allow_html=True)
 
         # Graphs in two columns
         col1, col2 = st.columns(2)
@@ -190,22 +229,38 @@ def main():
     with tab2:
         st.markdown("## 💼 Бізнес показники")
         
-        # Display average values
+        # Display average values in the same style
         st.markdown("### Середні показники")
-        avg_arpu = business_df['arpu'].mean()
-        avg_churn_rate = business_df['churn_rate'].mean()
-        avg_nps = business_df['nps'].mean()
-        avg_cost_per_mb = business_df['cost_per_mb'].mean()
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середній ARPU</div>
+                    <div class="metric-value">{format_metric(business_df['arpu'].mean(), 'money')}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середня втрата клієнтів</div>
+                    <div class="metric-value">{format_metric(business_df['churn_rate'].mean(), 'percentage')}</div>
+                </div>
+            """, unsafe_allow_html=True)
 
-        st.write(f"**Середня ARPU:** {format_metric(avg_arpu, 'money')}")
-        st.write(f"**Середня втрата клієнтів (Churn Rate):** {format_metric(avg_churn_rate, 'percentage')}")
-        st.write(f"**Середній NPS:** {avg_nps:.1f}")
-        st.write(f"**Середня вартість за MB:** {format_metric(avg_cost_per_mb, 'money')}")
+        with col3:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середній NPS</div>
+                    <div class="metric-value">{format_metric(business_df['nps'].mean(), 'percentage')}</div>
+                </div>
+            """, unsafe_allow_html=True)
 
         col1, col2 = st.columns(2)
         
         with col1:
-            # ARPU and Cost per MB
+            # ARPU and cost per MB
             fig_arpu = make_subplots(specs=[[{"secondary_y": True}]])
             fig_arpu.add_trace(
                 go.Scatter(x=business_df['date'], y=business_df['arpu'],
@@ -246,19 +301,33 @@ def main():
     with tab3:
         st.markdown("## 🔧 Операційні показники")
         
-        # Display average values
+        # Display average values in the same style
         st.markdown("### Середні показники")
-        avg_resolution_time = operational_df['avg_resolution_time'].mean()
-        avg_support_tickets = operational_df['support_tickets'].mean()
-        avg_fcr_rate = operational_df['fcr_rate'].mean()
-        avg_new_connections = operational_df['new_connections'].mean()
-        avg_capacity_utilization = operational_df['capacity_utilization'].mean()
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середній час вирішення</div>
+                    <div class="metric-value">{format_metric(operational_df['avg_resolution_time'].mean(), 'time')}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середня кількість запитів</div>
+                    <div class="metric-value">{operational_df['support_tickets'].mean():.1f}</div>
+                </div>
+            """, unsafe_allow_html=True)
 
-        st.write(f"**Середній час вирішення:** {format_metric(avg_resolution_time, 'time')}")
-        st.write(f"**Середня кількість запитів у службу підтримки:** {avg_support_tickets:.1f}")
-        st.write(f"**Середній FCR Rate:** {format_metric(avg_fcr_rate, 'percentage')}")
-        st.write(f"**Середня кількість нових підключень:** {avg_new_connections:.1f}")
-        st.write(f"**Середня завантаженість потужностей:** {format_metric(avg_capacity_utilization, 'percentage')}")
+        with col3:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середній FCR Rate</div>
+                    <div class="metric-value">{format_metric(operational_df['fcr_rate'].mean(), 'percentage')}</div>
+                </div>
+            """, unsafe_allow_html=True)
 
         col1, col2 = st.columns(2)
         
