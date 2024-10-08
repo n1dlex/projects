@@ -60,6 +60,13 @@ def main():
 
     with tab1:
         st.header("Технічні показники")
+
+        # Обчислення середніх значень для uptime
+        avg_uptime = technical_df['uptime'].mean()
+
+        # Відображення середніх показників зверху
+        st.metric("Середній Uptime", f"{avg_uptime:.2f}%")
+
         st.subheader("Таблиця технічних показників")
         st.dataframe(technical_df)
 
@@ -76,26 +83,22 @@ def main():
                               labels={'value': 'Показники (мс або %)', 'timestamp': 'Час'})
         st.plotly_chart(fig_quality, use_container_width=True)
 
-        # Метрика аптайму
-        st.subheader("Поточний Uptime")
-        latest_uptime = technical_df['uptime'].iloc[0]
-        st.metric("Uptime", f"{latest_uptime:.2f}%")
-
     with tab2:
         st.header("Бізнес показники")
+
+        # Обчислення середніх значень для ARPU і Churn Rate
+        avg_arpu = business_df['arpu'].mean()
+        avg_churn = business_df['churn_rate'].mean()
+
+        # Відображення середніх показників зверху
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Середній ARPU", f"₴{avg_arpu:.2f}")
+        with col2:
+            st.metric("Середній Churn Rate", f"{avg_churn:.2f}%")
+
         st.subheader("Таблиця бізнес-показників")
         st.dataframe(business_df)
-
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            latest_arpu = business_df['arpu'].iloc[0]
-            st.metric("ARPU", f"₴{latest_arpu:.2f}")
-        with col2:
-            latest_churn = business_df['churn_rate'].iloc[0]
-            st.metric("Churn Rate", f"{latest_churn:.2f}%")
-        with col3:
-            latest_nps = business_df['nps'].iloc[0]
-            st.metric("NPS", latest_nps)
 
         # Графік ARPU і Churn Rate
         st.subheader("Графік ARPU і Churn Rate")
@@ -106,6 +109,18 @@ def main():
 
     with tab3:
         st.header("Операційні показники")
+
+        # Обчислення середніх значень для часу вирішення і нових підключень
+        avg_resolution_time = operational_df['avg_resolution_time'].mean()
+        avg_new_connections = operational_df['new_connections'].mean()
+
+        # Відображення середніх показників зверху
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Середній час вирішення (год)", f"{avg_resolution_time:.2f}")
+        with col2:
+            st.metric("Середні нові підключення", f"{avg_new_connections:.0f}")
+
         st.subheader("Таблиця операційних показників")
         st.dataframe(operational_df)
 
@@ -122,15 +137,6 @@ def main():
             xaxis=dict(title='Дата'),
         )
         st.plotly_chart(fig_support, use_container_width=True)
-
-        # Метрики операційної ефективності
-        col1, col2 = st.columns(2)
-        with col1:
-            latest_fcr = operational_df['fcr_rate'].iloc[0]
-            st.metric("First Call Resolution Rate", f"{latest_fcr:.2f}%")
-        with col2:
-            latest_connections = operational_df['new_connections'].iloc[0]
-            st.metric("Нові підключення (за день)", latest_connections)
 
 if __name__ == "__main__":
     main()
