@@ -256,17 +256,9 @@ def main():
                 </div>
             """, unsafe_allow_html=True)
 
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-            st.markdown(f"""
-                <div class="metric-container">
-                    <div class="metric-title">Коефіцієнт використання</div>
-                    <div class="metric-value">{format_metric(business_df['utilization_rate'].mean(), 'percentage')}</div>
-                </div>
-            """, unsafe_allow_html=True)
+        col1, col2, = st.columns(2)
         
-        with col2:
+        with col1:
             st.markdown(f"""
                 <div class="metric-container">
                     <div class="metric-title">Вартість за МБ</div>
@@ -274,7 +266,7 @@ def main():
                 </div>
             """, unsafe_allow_html=True)
             
-        with col3:
+        with col2:
             st.markdown(f"""
                 <div class="metric-container">
                     <div class="metric-title">кількість коритувачів</div>
