@@ -55,64 +55,64 @@ def main():
         st.error(f"Помилка з'єднання з базою даних: {str(e)}")
         return
 
-    # Відображення середніх значень всіх метрик
-    st.header("Середні показники всіх метрик")
-
-    col1, col2, col3 = st.columns(3)
-    # Технічні показники
-    with col1:
-        st.subheader("Технічні показники")
-        st.metric("Середня швидкість завантаження", f"{technical_df['download_speed'].mean():.2f} Mbps")
-        st.metric("Середня швидкість відвантаження", f"{technical_df['upload_speed'].mean():.2f} Mbps")
-        st.metric("Середній Uptime", f"{technical_df['uptime'].mean():.2f}%")
-        st.metric("Середній packet loss", f"{technical_df['packet_loss'].mean():.2f}%")
-        st.metric("Середня затримка (Latency)", f"{technical_df['latency'].mean():.2f} ms")
-        st.metric("Середній Jitter", f"{technical_df['jitter'].mean():.2f} ms")
-
-    # Бізнес показники
-    with col2:
-        st.subheader("Бізнес показники")
-        st.metric("Середній ARPU", f"₴{business_df['arpu'].mean():.2f}")
-        st.metric("Середній Churn Rate", f"{business_df['churn_rate'].mean():.2f}%")
-        st.metric("Середній NPS", f"{business_df['nps'].mean():.2f}")
-        st.metric("Середній Utilization Rate", f"{business_df['utilization_rate'].mean():.2f}%")
-        st.metric("Середня вартість за MB", f"₴{business_df['cost_per_mb'].mean():.2f}")
-
-    # Операційні показники
-    with col3:
-        st.subheader("Операційні показники")
-        st.metric("Середній час вирішення (год)", f"{operational_df['avg_resolution_time'].mean():.2f}")
-        st.metric("Середня кількість звернень", f"{operational_df['support_tickets'].mean():.0f}")
-        st.metric("Середній First Call Resolution Rate", f"{operational_df['fcr_rate'].mean():.2f}%")
-        st.metric("Середні нові підключення", f"{operational_df['new_connections'].mean():.0f}")
-        st.metric("Середня завантаженість ємностей", f"{operational_df['capacity_utilization'].mean():.2f}%")
-
-    st.markdown("---")  # Розділювальна лінія
-
     # Вкладки для різних категорій КРІ
     tab1, tab2, tab3 = st.tabs(["Технічні КРІ", "Бізнес КРІ", "Операційні КРІ"])
 
+    # Технічні показники
     with tab1:
         st.header("Технічні показники")
+
+        # Відображення середніх значень технічних метрик
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Середня швидкість завантаження", f"{technical_df['download_speed'].mean():.2f} Mbps")
+        with col2:
+            st.metric("Середня швидкість відвантаження", f"{technical_df['upload_speed'].mean():.2f} Mbps")
+        with col3:
+            st.metric("Середній Uptime", f"{technical_df['uptime'].mean():.2f}%")
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Середній Packet Loss", f"{technical_df['packet_loss'].mean():.2f}%")
+        with col2:
+            st.metric("Середня Затримка (Latency)", f"{technical_df['latency'].mean():.2f} ms")
+        with col3:
+            st.metric("Середній Jitter", f"{technical_df['jitter'].mean():.2f} ms")
+
         st.subheader("Таблиця технічних показників")
         st.dataframe(technical_df)
 
-        # Графік швидкості
+        # Графік швидкості передачі даних
         st.subheader("Графік швидкості передачі даних")
         fig_speed = px.line(technical_df, x='timestamp', y=['download_speed', 'upload_speed'],
                             title='Швидкість передачі даних', labels={'value': 'Швидкість (Mbps)', 'timestamp': 'Час'})
         st.plotly_chart(fig_speed, use_container_width=True)
 
-        # Графік якості з\'єднання
+        # Графік якості з'єднання
         st.subheader("Графік якості з\'єднання")
         fig_quality = px.line(technical_df, x='timestamp', y=['packet_loss', 'latency', 'jitter'],
                               title="Показники якості з'єднання", 
                               labels={'value': 'Показники (мс або %)', 'timestamp': 'Час'})
         st.plotly_chart(fig_quality, use_container_width=True)
 
+    # Бізнес показники
     with tab2:
         st.header("Бізнес показники")
-        st.subheader("Таблиця бізнес-показників")
+
+        # Відображення середніх значень бізнесових метрик
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Середній ARPU", f"₴{business_df['arpu'].mean():.2f}")
+        with col2:
+            st.metric("Середній Churn Rate", f"{business_df['churn_rate'].mean():.2f}%")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Середній NPS", f"{business_df['nps'].mean():.2f}")
+        with col2:
+            st.metric("Середній Utilization Rate", f"{business_df['utilization_rate'].mean():.2f}%")
+
+        st.subheader("Таблиця бізнес показників")
         st.dataframe(business_df)
 
         # Графік ARPU і Churn Rate
@@ -122,8 +122,23 @@ def main():
                                labels={'value': 'Показники', 'date': 'Дата'})
         st.plotly_chart(fig_business, use_container_width=True)
 
+    # Операційні показники
     with tab3:
         st.header("Операційні показники")
+
+        # Відображення середніх значень операційних метрик
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Середній час вирішення (год)", f"{operational_df['avg_resolution_time'].mean():.2f}")
+        with col2:
+            st.metric("Середній FCR Rate", f"{operational_df['fcr_rate'].mean():.2f}%")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Середня кількість звернень", f"{operational_df['support_tickets'].mean():.0f}")
+        with col2:
+            st.metric("Середні нові підключення", f"{operational_df['new_connections'].mean():.0f}")
+
         st.subheader("Таблиця операційних показників")
         st.dataframe(operational_df)
 
