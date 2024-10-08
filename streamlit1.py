@@ -1,5 +1,5 @@
 
-pip install plotly psycopg2
+pip install plotly 
 
 import streamlit as st
 import pandas as pd
