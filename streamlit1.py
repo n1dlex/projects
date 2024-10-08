@@ -261,7 +261,7 @@ def main():
         with col1:
             st.markdown(f"""
                 <div class="metric-container">
-                    <div class="metric-title">Середній ARPU</div>
+                    <div class="metric-title">Коефіцієнт використання</div>
                     <div class="metric-value">{format_metric(business_df['utilization_rate'].mean(), 'percentage')}</div>
                 </div>
             """, unsafe_allow_html=True)
@@ -269,7 +269,7 @@ def main():
         with col2:
             st.markdown(f"""
                 <div class="metric-container">
-                    <div class="metric-title">Середня втрата клієнтів</div>
+                    <div class="metric-title">Вартість за МБ</div>
                     <div class="metric-value">{format_metric(business_df['cost_per_mb'].mean(), '')}</div>
                 </div>
             """, unsafe_allow_html=True)
@@ -347,6 +347,24 @@ def main():
                     <div class="metric-value">{format_metric(operational_df['fcr_rate'].mean(), 'percentage')}</div>
                 </div>
             """, unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Нові з'єднання</div>
+                    <div class="metric-value">{format_metric(operational_df['new_connections'].mean(), '')}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середня кількість запитів</div>
+                    <div class="metric-value">{operational_df['capacity_utilization'].mean(), 'percentage')}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        
 
         col1, col2 = st.columns(2)
         
