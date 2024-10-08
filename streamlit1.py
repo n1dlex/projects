@@ -77,7 +77,18 @@ def main():
         st.subheader("Таблиця технічних показників")
         st.dataframe(technical_df)
 
-        # Графіки залишаються без змін...
+        # Графік швидкості передачі даних
+        st.subheader("Графік швидкості передачі даних")
+        fig_speed = px.line(technical_df, x='timestamp', y=['download_speed', 'upload_speed'],
+                            title='Швидкість передачі даних', labels={'value': 'Швидкість (Mbps)', 'timestamp': 'Час'})
+        st.plotly_chart(fig_speed, use_container_width=True)
+
+        # Графік якості з'єднання
+        st.subheader("Графік якості з\'єднання")
+        fig_quality = px.line(technical_df, x='timestamp', y=['packet_loss', 'latency', 'jitter'],
+                              title="Показники якості з'єднання", 
+                              labels={'value': 'Показники (мс або %)', 'timestamp': 'Час'})
+        st.plotly_chart(fig_quality, use_container_width=True)
 
     # Бізнес показники
     with tab2:
@@ -97,7 +108,19 @@ def main():
         st.subheader("Таблиця бізнес показників")
         st.dataframe(business_df)
 
-        # Графіки залишаються без змін...
+        # Графік ARPU і Churn Rate
+        st.subheader("Графік ARPU і Churn Rate")
+        fig_business = px.line(business_df, x='date', y=['arpu', 'churn_rate'],
+                               title='Динаміка ARPU і Churn Rate', 
+                               labels={'value': 'Показники', 'date': 'Дата'})
+        st.plotly_chart(fig_business, use_container_width=True)
+
+        # Додатковий графік для NPS і Utilization Rate
+        st.subheader("Графік NPS і Utilization Rate")
+        fig_business2 = px.line(business_df, x='date', y=['nps', 'utilization_rate'],
+                                title='Динаміка NPS і Utilization Rate',
+                                labels={'value': 'Показники', 'date': 'Дата'})
+        st.plotly_chart(fig_business2, use_container_width=True)
 
     # Операційні показники
     with tab3:
@@ -117,7 +140,26 @@ def main():
         st.subheader("Таблиця операційних показників")
         st.dataframe(operational_df)
 
-        # Графіки залишаються без змін...
+        # Графік звернень та часу вирішення
+        st.subheader("Графік звернень та часу вирішення")
+        fig_support = go.Figure()
+        fig_support.add_trace(go.Bar(x=operational_df['date'], y=operational_df['support_tickets'], name='Кількість звернень'))
+        fig_support.add_trace(go.Scatter(x=operational_df['date'], y=operational_df['avg_resolution_time'], mode='lines+markers',
+                                         name='Час вирішення (год)', yaxis='y2'))
+        fig_support.update_layout(
+            title='Звернення та час вирішення',
+            yaxis=dict(title='Кількість звернень'),
+            yaxis2=dict(title='Час вирішення (год)', overlaying='y', side='right'),
+            xaxis=dict(title='Дата'),
+        )
+        st.plotly_chart(fig_support, use_container_width=True)
+
+        # Додатковий графік для FCR Rate і нових підключень
+        st.subheader("Графік FCR Rate і нових підключень")
+        fig_operational2 = px.line(operational_df, x='date', y=['fcr_rate', 'new_connections'],
+                                   title='Динаміка FCR Rate і нових підключень',
+                                   labels={'value': 'Показники', 'date': 'Дата'})
+        st.plotly_chart(fig_operational2, use_container_width=True)
 
 if __name__ == "__main__":
     main()
