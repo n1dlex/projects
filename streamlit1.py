@@ -4,7 +4,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import psycopg2
-from datetime import datetime
 
 # Функція для створення з'єднання з базою даних
 def get_connection():
@@ -57,22 +56,6 @@ def format_metric(value, format_type):
     else:
         return f"{value:.1f}"
 
-def create_time_filters(df, date_column):
-    # Конвертуємо стовпець дати у datetime, якщо він ще не в цьому форматі
-    if not pd.api.types.is_datetime64_any_dtype(df[date_column]):
-        df[date_column] = pd.to_datetime(df[date_column])
-    
-    # Отримуємо діапазон дат
-    min_date = df[date_column].min()
-    max_date = df[date_column].max()
-    
-    return st.date_input(
-        "Виберіть діапазон дат",
-        value=(min_date, max_date),
-        min_value=min_date,
-        max_value=max_date,
-    )
-
 def main():
     st.set_page_config(page_title="КРІ Дашборд", layout="wide")
     
@@ -105,13 +88,6 @@ def main():
         st.error(f"Помилка з'єднання з базою даних: {str(e)}")
         return
 
-    # Динамічний фільтр за датами для технічних показників
-    date_range = create_time_filters(technical_df, 'timestamp')
-    filtered_technical_df = technical_df[
-        (technical_df['timestamp'] >= date_range[0]) & 
-        (technical_df['timestamp'] <= date_range[1])
-    ]
-
     # Головні KPI у верхній частині
     st.markdown("### 📈 Ключові показники")
     col1, col2, col3, col4 = st.columns(4)
@@ -120,7 +96,7 @@ def main():
         st.markdown(f"""
             <div class="metric-container">
                 <div class="metric-title">Середня швидкість</div>
-                <div class="metric-value">{format_metric(filtered_technical_df['download_speed'].mean(), 'speed')}</div>
+                <div class="metric-value">{format_metric(technical_df['download_speed'].mean(), 'speed')}</div>
             </div>
         """, unsafe_allow_html=True)
     
@@ -136,7 +112,7 @@ def main():
         st.markdown(f"""
             <div class="metric-container">
                 <div class="metric-title">Uptime</div>
-                <div class="metric-value">{format_metric(filtered_technical_df['uptime'].mean(), 'percentage')}</div>
+                <div class="metric-value">{format_metric(technical_df['uptime'].mean(), 'percentage')}</div>
             </div>
         """, unsafe_allow_html=True)
     
@@ -160,7 +136,7 @@ def main():
         
         with col1:
             # Графік швидкостей
-            fig_speed = px.line(filtered_technical_df, x='timestamp', 
+            fig_speed = px.line(technical_df, x='timestamp', 
                                y=['download_speed', 'upload_speed'],
                                labels={'value': 'Швидкість (Mbps)', 
                                       'timestamp': 'Час',
@@ -170,7 +146,7 @@ def main():
             st.plotly_chart(fig_speed, use_container_width=True)
 
             # Графік packet loss та uptime
-            fig_quality = px.line(filtered_technical_df, x='timestamp', 
+            fig_quality = px.line(technical_df, x='timestamp', 
                                  y=['packet_loss', 'uptime'],
                                  labels={'value': 'Відсотки (%)', 
                                         'timestamp': 'Час',
@@ -181,7 +157,7 @@ def main():
 
         with col2:
             # Графік затримки та джитера
-            fig_latency = px.line(filtered_technical_df, x='timestamp', 
+            fig_latency = px.line(technical_df, x='timestamp', 
                                  y=['latency', 'jitter'],
                                  labels={'value': 'Мілісекунди (ms)', 
                                         'timestamp': 'Час',
@@ -192,7 +168,7 @@ def main():
 
         # Таблиця з можливістю сортування
         st.markdown("### 📋 Детальні дані")
-        st.dataframe(filtered_technical_df.style.highlight_max(axis=0), use_container_width=True)
+        st.dataframe(technical_df.style.highlight_max(axis=0), use_container_width=True)
 
     # Бізнес показники
     with tab2:
@@ -247,32 +223,32 @@ def main():
             fig_resolution = make_subplots(specs=[[{"secondary_y": True}]])
             fig_resolution.add_trace(
                 go.Scatter(x=operational_df['date'], y=operational_df['avg_resolution_time'],
-                          name="Час вирішення (години)", line=dict(color="#9467bd")),
+                          name="Середній час вирішення", line=dict(color="#1f77b4")),
                 secondary_y=False)
             fig_resolution.add_trace(
                 go.Scatter(x=operational_df['date'], y=operational_df['new_connections'],
-                          name="Нові з'єднання", line=dict(color="#8c564b")),
+                          name="Нові з'єднання", line=dict(color="#ff7f0e")),
                 secondary_y=True)
-            fig_resolution.update_layout(title="⏳ Час вирішення та нові з'єднання", height=300)
+            fig_resolution.update_layout(title="⏳ Час вирішення проблем та нові з'єднання", height=300)
             fig_resolution.update_yaxes(title_text="Час вирішення (години)", secondary_y=False)
             fig_resolution.update_yaxes(title_text="Нові з'єднання", secondary_y=True)
             st.plotly_chart(fig_resolution, use_container_width=True)
 
         with col2:
-            # Показники служби підтримки
-            fig_support = make_subplots(specs=[[{"secondary_y": True}]])
-            fig_support.add_trace(
+            # Кількість квитків підтримки та коефіцієнт FCR
+            fig_tickets = make_subplots(specs=[[{"secondary_y": True}]])
+            fig_tickets.add_trace(
                 go.Scatter(x=operational_df['date'], y=operational_df['support_tickets'],
-                          name="Кількість запитів", line=dict(color="#e377c2")),
+                          name="Квитки підтримки", line=dict(color="#d62728")),
                 secondary_y=False)
-            fig_support.add_trace(
-                go.Scatter(x=operational_df['date'], y=operational_df['capacity_utilization'],
-                          name="Використання ємності (%)", line=dict(color="#7f7f7f")),
+            fig_tickets.add_trace(
+                go.Scatter(x=operational_df['date'], y=operational_df['fcr_rate'],
+                          name="FCR Rate", line=dict(color="#2ca02c")),
                 secondary_y=True)
-            fig_support.update_layout(title="📞 Показники служби підтримки", height=300)
-            fig_support.update_yaxes(title_text="Кількість запитів", secondary_y=False)
-            fig_support.update_yaxes(title_text="Використання ємності (%)", secondary_y=True)
-            st.plotly_chart(fig_support, use_container_width=True)
+            fig_tickets.update_layout(title="🎟️ Квитки підтримки та FCR Rate", height=300)
+            fig_tickets.update_yaxes(title_text="Кількість квитків", secondary_y=False)
+            fig_tickets.update_yaxes(title_text="FCR Rate (%)", secondary_y=True)
+            st.plotly_chart(fig_tickets, use_container_width=True)
 
         # Таблиця з можливістю сортування
         st.markdown("### 📋 Детальні дані")
