@@ -185,14 +185,6 @@ def main():
                 </div>
             """, unsafe_allow_html=True)
 
-        with st.container():
-            st.markdown(f"""
-                <div class="metric-container">
-                    <div class="metric-title">Середній Uptime</div>
-                    <div class="metric-value">{format_metric(technical_df['uptime'].mean(), 'percentage')}</div>
-                </div>
-            """, unsafe_allow_html=True)
-
         # Graphs in two columns
         col1, col2 = st.columns(2)
         
