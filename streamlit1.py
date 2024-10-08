@@ -360,8 +360,8 @@ def main():
         with col2:
             st.markdown(f"""
                 <div class="metric-container">
-                    <div class="metric-title">Середня кількість запитів</div>
-                    <div class="metric-value">{operational_df['capacity_utilization'].mean(), 'percentage')}</div>
+                    <div class="metric-title">Використання потужностей</div>
+                    <div class="metric-value">{format_metric(operational_df['capacity_utilization'].mean(), 'percentage')}</div>
                 </div>
             """, unsafe_allow_html=True)
         
