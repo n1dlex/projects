@@ -8,6 +8,47 @@ import psycopg2
 from datetime import datetime
 
 # Функції get_connection() і get_data() залишаються без змін
+# Функція для створення з'єднання з базою даних
+def get_connection():
+    return psycopg2.connect(
+        host='test.cjyyo648mw6r.eu-north-1.rds.amazonaws.com',
+        database='test',
+        user='postgres',
+        password='11111111'
+    )
+
+# Функція для отримання даних з бази
+def get_data():
+    conn = get_connection()
+
+    try:
+        technical_df = pd.read_sql("""
+            SELECT timestamp, download_speed, upload_speed, packet_loss, latency, jitter, uptime
+            FROM technical_kpi
+            ORDER BY timestamp DESC
+            LIMIT 24
+        """, conn)
+
+        business_df = pd.read_sql("""
+            SELECT date, arpu, churn_rate, nps, utilization_rate, cost_per_mb
+            FROM business_kpi
+            ORDER BY date DESC
+            LIMIT 30
+        """, conn)
+
+        operational_df = pd.read_sql("""
+            SELECT date, avg_resolution_time, support_tickets, fcr_rate, new_connections, capacity_utilization
+            FROM operational_kpi
+            ORDER BY date DESC
+            LIMIT 30
+        """, conn)
+
+    finally:
+        conn.close()
+
+    return technical_df, business_df, operational_df
+
+
 
 def format_metric(value, format_type):
     if format_type == 'speed':
