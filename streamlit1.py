@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import psycopg2
 
-# Function to create a database connection
+# Функція для створення з'єднання з базою даних
 def get_connection():
     return psycopg2.connect(
         host='test.cjyyo648mw6r.eu-north-1.rds.amazonaws.com',
@@ -14,7 +14,7 @@ def get_connection():
         password='11111111'
     )
 
-# Function to fetch data from the database
+# Функція для отримання даних з бази
 def get_data():
     conn = get_connection()
     try:
@@ -59,7 +59,7 @@ def format_metric(value, format_type):
 def main():
     st.set_page_config(page_title="КРІ Дашборд", layout="wide")
     
-    # Use CSS for improved appearance
+    # Використання CSS для покращення вигляду
     st.markdown("""
         <style>
         .metric-container {
@@ -88,52 +88,170 @@ def main():
         st.error(f"Помилка з'єднання з базою даних: {str(e)}")
         return
 
-    # Display average values for technical KPIs
-    st.markdown("### 📈 Середні значення технічних показників")
-    for column in ['download_speed', 'upload_speed', 'packet_loss', 'latency', 'jitter', 'uptime']:
+    # Головні KPI у верхній частині
+    st.markdown("### 📈 Ключові показники")
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
         st.markdown(f"""
             <div class="metric-container">
-                <div class="metric-title">{column.replace('_', ' ').title()}</div>
-                <div class="metric-value">{format_metric(technical_df[column].mean(), 'speed' if 'speed' in column else 'percentage' if 'loss' in column or 'uptime' in column else 'time')}</div>
+                <div class="metric-title">Середня швидкість завантаження</div>
+                <div class="metric-value">{format_metric(technical_df['download_speed'].mean(), 'speed')}</div>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(f"""
+            <div class="metric-container">
+                <div class="metric-title">Середня ARPU</div>
+                <div class="metric-value">{format_metric(business_df['arpu'].mean(), 'money')}</div>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(f"""
+            <div class="metric-container">
+                <div class="metric-title">Середній Uptime</div>
+                <div class="metric-value">{format_metric(technical_df['uptime'].mean(), 'percentage')}</div>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown(f"""
+            <div class="metric-container">
+                <div class="metric-title">Середній FCR Rate</div>
+                <div class="metric-value">{format_metric(operational_df['fcr_rate'].mean(), 'percentage')}</div>
             </div>
         """, unsafe_allow_html=True)
 
-    # Display average values for business KPIs
-    st.markdown("### 📈 Середні значення бізнес-показників")
-    for column in ['arpu', 'churn_rate', 'nps', 'utilization_rate', 'cost_per_mb']:
-        st.markdown(f"""
-            <div class="metric-container">
-                <div class="metric-title">{column.replace('_', ' ').title()}</div>
-                <div class="metric-value">{format_metric(business_df[column].mean(), 'money' if 'arpu' in column or 'cost' in column else 'percentage')}</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-    # Display average values for operational KPIs
-    st.markdown("### 📈 Середні значення операційних показників")
-    for column in ['avg_resolution_time', 'support_tickets', 'fcr_rate', 'new_connections', 'capacity_utilization']:
-        st.markdown(f"""
-            <div class="metric-container">
-                <div class="metric-title">{column.replace('_', ' ').title()}</div>
-                <div class="metric-value">{format_metric(operational_df[column].mean(), 'time' if 'resolution' in column else 'percentage' if 'rate' in column or 'utilization' in column else 'number')}</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-    # Tabs for different KPI categories
+    # Вкладки для різних категорій КРІ
     tab1, tab2, tab3 = st.tabs(["📡 Технічні КРІ", "💼 Бізнес КРІ", "🔧 Операційні КРІ"])
 
-    # Technical KPIs tab
+    # Технічні показники
     with tab1:
         st.markdown("## 📡 Технічні показники")
+        
+        # Графіки в два стовпці
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Графік швидкостей
+            fig_speed = px.line(technical_df, x='timestamp', 
+                               y=['download_speed', 'upload_speed'],
+                               labels={'value': 'Швидкість (Mbps)', 
+                                      'timestamp': 'Час',
+                                      'variable': 'Тип швидкості'},
+                               title="📶 Швидкість передачі даних")
+            fig_speed.update_layout(height=300)
+            st.plotly_chart(fig_speed, use_container_width=True)
+
+            # Графік packet loss та uptime
+            fig_quality = px.line(technical_df, x='timestamp', 
+                                 y=['packet_loss', 'uptime'],
+                                 labels={'value': 'Відсотки (%)', 
+                                        'timestamp': 'Час',
+                                        'variable': 'Показник'},
+                                 title="📊 Якість з'єднання")
+            fig_quality.update_layout(height=300)
+            st.plotly_chart(fig_quality, use_container_width=True)
+
+        with col2:
+            # Графік затримки та джитера
+            fig_latency = px.line(technical_df, x='timestamp', 
+                                 y=['latency', 'jitter'],
+                                 labels={'value': 'Мілісекунди (ms)', 
+                                        'timestamp': 'Час',
+                                        'variable': 'Показник'},
+                                 title="⏱️ Затримка та джитер")
+            fig_latency.update_layout(height=300)
+            st.plotly_chart(fig_latency, use_container_width=True)
+
+        # Таблиця з можливістю сортування
+        st.markdown("### 📋 Детальні дані")
         st.dataframe(technical_df, use_container_width=True)
 
-    # Business KPIs tab
+    # Бізнес показники
     with tab2:
         st.markdown("## 💼 Бізнес показники")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # ARPU та Cost per MB
+            fig_arpu = make_subplots(specs=[[{"secondary_y": True}]])
+            fig_arpu.add_trace(
+                go.Scatter(x=business_df['date'], y=business_df['arpu'],
+                          name="ARPU", line=dict(color="#1f77b4")),
+                secondary_y=False)
+            fig_arpu.add_trace(
+                go.Scatter(x=business_df['date'], y=business_df['cost_per_mb'],
+                          name="Cost per MB", line=dict(color="#ff7f0e")),
+                secondary_y=True)
+            fig_arpu.update_layout(title="💰 ARPU та вартість за MB", height=300)
+            fig_arpu.update_yaxes(title_text="ARPU (₴)", secondary_y=False)
+            fig_arpu.update_yaxes(title_text="Вартість за MB (₴)", secondary_y=True)
+            st.plotly_chart(fig_arpu, use_container_width=True)
+
+        with col2:
+            # Churn rate та NPS
+            fig_churn = make_subplots(specs=[[{"secondary_y": True}]])
+            fig_churn.add_trace(
+                go.Scatter(x=business_df['date'], y=business_df['churn_rate'],
+                          name="Churn Rate", line=dict(color="#d62728")),
+                secondary_y=False)
+            fig_churn.add_trace(
+                go.Scatter(x=business_df['date'], y=business_df['nps'],
+                          name="NPS", line=dict(color="#2ca02c")),
+                secondary_y=True)
+            fig_churn.update_layout(title="📉 Churn Rate та NPS", height=300)
+            fig_churn.update_yaxes(title_text="Churn Rate (%)", secondary_y=False)
+            fig_churn.update_yaxes(title_text="NPS", secondary_y=True)
+            st.plotly_chart(fig_churn, use_container_width=True)
+
+        # Таблиця з можливістю сортування
+        st.markdown("### 📋 Детальні дані")
         st.dataframe(business_df, use_container_width=True)
 
-    # Operational KPIs tab
+    # Операційні показники
     with tab3:
         st.markdown("## 🔧 Операційні показники")
+        
+        col1, col2 = st.columns(2)
+
+        with col1:
+            # Час вирішення проблем та нові з'єднання
+            fig_resolution = make_subplots(specs=[[{"secondary_y": True}]])
+            fig_resolution.add_trace(
+                go.Scatter(x=operational_df['date'], y=operational_df['avg_resolution_time'],
+                          name="Середній час вирішення", line=dict(color="#9467bd")),
+                secondary_y=False)
+            fig_resolution.add_trace(
+                go.Scatter(x=operational_df['date'], y=operational_df['new_connections'],
+                          name="Нові з'єднання", line=dict(color="#8c564b")),
+                secondary_y=True)
+            fig_resolution.update_layout(title="🕒 Час вирішення проблем та нові з'єднання", height=300)
+            fig_resolution.update_yaxes(title_text="Середній час вирішення (години)", secondary_y=False)
+            fig_resolution.update_yaxes(title_text="Нові з'єднання", secondary_y=True)
+            st.plotly_chart(fig_resolution, use_container_width=True)
+
+        with col2:
+            # Показники підтримки
+            fig_support = make_subplots(specs=[[{"secondary_y": True}]])
+            fig_support.add_trace(
+                go.Scatter(x=operational_df['date'], y=operational_df['support_tickets'],
+                          name="Тикети підтримки", line=dict(color="#e377c2")),
+                secondary_y=False)
+            fig_support.add_trace(
+                go.Scatter(x=operational_df['date'], y=operational_df['capacity_utilization'],
+                          name="Використання потужності", line=dict(color="#7f7f7f")),
+                secondary_y=True)
+            fig_support.update_layout(title="📊 Показники підтримки", height=300)
+            fig_support.update_yaxes(title_text="Тикети підтримки", secondary_y=False)
+            fig_support.update_yaxes(title_text="Використання потужності (%)", secondary_y=True)
+            st.plotly_chart(fig_support, use_container_width=True)
+
+        # Таблиця з можливістю сортування
+        st.markdown("### 📋 Детальні дані")
         st.dataframe(operational_df, use_container_width=True)
 
 if __name__ == "__main__":
