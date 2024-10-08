@@ -178,7 +178,7 @@ def main():
                 </div>
             """, unsafe_allow_html=True)
 
-        with col2:
+        with col3:
             st.markdown(f"""
                 <div class="metric-container">
                     <div class="metric-title">Середній Uptime</div>
