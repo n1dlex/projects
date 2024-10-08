@@ -160,7 +160,7 @@ def main():
             """, unsafe_allow_html=True)
 
         st.markdown("### Інші показники")
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
 
         with col1:
             st.markdown(f"""
@@ -175,6 +175,14 @@ def main():
                 <div class="metric-container">
                     <div class="metric-title">Середній джитер</div>
                     <div class="metric-value">{format_metric(technical_df['jitter'].mean(), 'time')}</div>
+                </div>
+            """, unsafe_allow_html=True)
+
+        with col2:
+            st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-title">Середній Uptime</div>
+                    <div class="metric-value">{format_metric(technical_df['uptime'].mean(), 'percentage')}</div>
                 </div>
             """, unsafe_allow_html=True)
 
