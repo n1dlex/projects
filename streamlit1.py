@@ -89,10 +89,9 @@ def main():
         return
 
     # Головні KPI у верхній частині
-    st.markdown("### 📈 Середні показники")
+    st.markdown("### 📈 Ключові показники")
     col1, col2, col3, col4 = st.columns(4)
     
-    # Технічні показники
     with col1:
         st.markdown(f"""
             <div class="metric-container">
@@ -100,28 +99,28 @@ def main():
                 <div class="metric-value">{format_metric(technical_df['download_speed'].mean(), 'speed')}</div>
             </div>
         """, unsafe_allow_html=True)
-
+    
     with col2:
         st.markdown(f"""
             <div class="metric-container">
-                <div class="metric-title">Середня швидкість вивантаження</div>
-                <div class="metric-value">{format_metric(technical_df['upload_speed'].mean(), 'speed')}</div>
+                <div class="metric-title">Середня ARPU</div>
+                <div class="metric-value">{format_metric(business_df['arpu'].mean(), 'money')}</div>
             </div>
         """, unsafe_allow_html=True)
-
+    
     with col3:
         st.markdown(f"""
             <div class="metric-container">
-                <div class="metric-title">Середнє значення втрат пакетів</div>
-                <div class="metric-value">{format_metric(technical_df['packet_loss'].mean(), 'percentage')}</div>
+                <div class="metric-title">Середній Uptime</div>
+                <div class="metric-value">{format_metric(technical_df['uptime'].mean(), 'percentage')}</div>
             </div>
         """, unsafe_allow_html=True)
-
+    
     with col4:
         st.markdown(f"""
             <div class="metric-container">
-                <div class="metric-title">Середнє значення затримки</div>
-                <div class="metric-value">{format_metric(technical_df['latency'].mean(), 'time')}</div>
+                <div class="metric-title">Середній FCR Rate</div>
+                <div class="metric-value">{format_metric(operational_df['fcr_rate'].mean(), 'percentage')}</div>
             </div>
         """, unsafe_allow_html=True)
 
@@ -175,42 +174,8 @@ def main():
     with tab2:
         st.markdown("## 💼 Бізнес показники")
         
-        # Середні бізнес показники
         col1, col2 = st.columns(2)
-
-        with col1:
-            st.markdown(f"""
-                <div class="metric-container">
-                    <div class="metric-title">Середній ARPU</div>
-                    <div class="metric-value">{format_metric(business_df['arpu'].mean(), 'money')}</div>
-                </div>
-            """, unsafe_allow_html=True)
-
-            st.markdown(f"""
-                <div class="metric-container">
-                    <div class="metric-title">Середній Churn Rate</div>
-                    <div class="metric-value">{format_metric(business_df['churn_rate'].mean(), 'percentage')}</div>
-                </div>
-            """, unsafe_allow_html=True)
-
-        with col2:
-            st.markdown(f"""
-                <div class="metric-container">
-                    <div class="metric-title">Середнє NPS</div>
-                    <div class="metric-value">{format_metric(business_df['nps'].mean(), 'money')}</div>
-                </div>
-            """, unsafe_allow_html=True)
-
-            st.markdown(f"""
-                <div class="metric-container">
-                    <div class="metric-title">Середня вартість за MB</div>
-                    <div class="metric-value">{format_metric(business_df['cost_per_mb'].mean(), 'money')}</div>
-                </div>
-            """, unsafe_allow_html=True)
-
-        # Графіки бізнес показників
-        col1, col2 = st.columns(2)
-
+        
         with col1:
             # ARPU та Cost per MB
             fig_arpu = make_subplots(specs=[[{"secondary_y": True}]])
@@ -228,20 +193,20 @@ def main():
             st.plotly_chart(fig_arpu, use_container_width=True)
 
         with col2:
-            # Churn Rate та NPS
-            fig_churn_nps = make_subplots(specs=[[{"secondary_y": True}]])
-            fig_churn_nps.add_trace(
+            # Churn rate та NPS
+            fig_churn = make_subplots(specs=[[{"secondary_y": True}]])
+            fig_churn.add_trace(
                 go.Scatter(x=business_df['date'], y=business_df['churn_rate'],
                           name="Churn Rate", line=dict(color="#d62728")),
                 secondary_y=False)
-            fig_churn_nps.add_trace(
+            fig_churn.add_trace(
                 go.Scatter(x=business_df['date'], y=business_df['nps'],
                           name="NPS", line=dict(color="#2ca02c")),
                 secondary_y=True)
-            fig_churn_nps.update_layout(title="📉 Churn Rate та NPS", height=300)
-            fig_churn_nps.update_yaxes(title_text="Churn Rate (%)", secondary_y=False)
-            fig_churn_nps.update_yaxes(title_text="NPS", secondary_y=True)
-            st.plotly_chart(fig_churn_nps, use_container_width=True)
+            fig_churn.update_layout(title="📉 Churn Rate та NPS", height=300)
+            fig_churn.update_yaxes(title_text="Churn Rate (%)", secondary_y=False)
+            fig_churn.update_yaxes(title_text="NPS", secondary_y=True)
+            st.plotly_chart(fig_churn, use_container_width=True)
 
         # Таблиця з можливістю сортування
         st.markdown("### 📋 Детальні дані")
@@ -250,41 +215,7 @@ def main():
     # Операційні показники
     with tab3:
         st.markdown("## 🔧 Операційні показники")
-
-        # Середні операційні показники
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.markdown(f"""
-                <div class="metric-container">
-                    <div class="metric-title">Середній час вирішення</div>
-                    <div class="metric-value">{format_metric(operational_df['avg_resolution_time'].mean(), 'time')}</div>
-                </div>
-            """, unsafe_allow_html=True)
-
-            st.markdown(f"""
-                <div class="metric-container">
-                    <div class="metric-title">Середня кількість квитків</div>
-                    <div class="metric-value">{operational_df['support_tickets'].mean():.0f}</div>
-                </div>
-            """, unsafe_allow_html=True)
-
-        with col2:
-            st.markdown(f"""
-                <div class="metric-container">
-                    <div class="metric-title">Середній FCR Rate</div>
-                    <div class="metric-value">{format_metric(operational_df['fcr_rate'].mean(), 'percentage')}</div>
-                </div>
-            """, unsafe_allow_html=True)
-
-            st.markdown(f"""
-                <div class="metric-container">
-                    <div class="metric-title">Середня кількість нових з'єднань</div>
-                    <div class="metric-value">{operational_df['new_connections'].mean():.0f}</div>
-                </div>
-            """, unsafe_allow_html=True)
-
-        # Графіки операційних показників
+        
         col1, col2 = st.columns(2)
 
         with col1:
@@ -292,32 +223,32 @@ def main():
             fig_resolution = make_subplots(specs=[[{"secondary_y": True}]])
             fig_resolution.add_trace(
                 go.Scatter(x=operational_df['date'], y=operational_df['avg_resolution_time'],
-                          name="Середній час вирішення", line=dict(color="#1f77b4")),
+                          name="Середній час вирішення", line=dict(color="#9467bd")),
                 secondary_y=False)
             fig_resolution.add_trace(
                 go.Scatter(x=operational_df['date'], y=operational_df['new_connections'],
-                          name="Нові з'єднання", line=dict(color="#ff7f0e")),
+                          name="Нові з'єднання", line=dict(color="#8c564b")),
                 secondary_y=True)
-            fig_resolution.update_layout(title="⏳ Час вирішення проблем та нові з'єднання", height=300)
-            fig_resolution.update_yaxes(title_text="Час вирішення (години)", secondary_y=False)
+            fig_resolution.update_layout(title="🕒 Час вирішення проблем та нові з'єднання", height=300)
+            fig_resolution.update_yaxes(title_text="Середній час вирішення (години)", secondary_y=False)
             fig_resolution.update_yaxes(title_text="Нові з'єднання", secondary_y=True)
             st.plotly_chart(fig_resolution, use_container_width=True)
 
         with col2:
-            # Кількість квитків підтримки та коефіцієнт FCR
-            fig_tickets = make_subplots(specs=[[{"secondary_y": True}]])
-            fig_tickets.add_trace(
+            # Показники підтримки
+            fig_support = make_subplots(specs=[[{"secondary_y": True}]])
+            fig_support.add_trace(
                 go.Scatter(x=operational_df['date'], y=operational_df['support_tickets'],
-                          name="Квитки підтримки", line=dict(color="#d62728")),
+                          name="Тикети підтримки", line=dict(color="#e377c2")),
                 secondary_y=False)
-            fig_tickets.add_trace(
-                go.Scatter(x=operational_df['date'], y=operational_df['fcr_rate'],
-                          name="FCR Rate", line=dict(color="#2ca02c")),
+            fig_support.add_trace(
+                go.Scatter(x=operational_df['date'], y=operational_df['capacity_utilization'],
+                          name="Використання потужності", line=dict(color="#7f7f7f")),
                 secondary_y=True)
-            fig_tickets.update_layout(title="🎟️ Квитки підтримки та FCR Rate", height=300)
-            fig_tickets.update_yaxes(title_text="Кількість квитків", secondary_y=False)
-            fig_tickets.update_yaxes(title_text="FCR Rate (%)", secondary_y=True)
-            st.plotly_chart(fig_tickets, use_container_width=True)
+            fig_support.update_layout(title="📊 Показники підтримки", height=300)
+            fig_support.update_yaxes(title_text="Тикети підтримки", secondary_y=False)
+            fig_support.update_yaxes(title_text="Використання потужності (%)", secondary_y=True)
+            st.plotly_chart(fig_support, use_container_width=True)
 
         # Таблиця з можливістю сортування
         st.markdown("### 📋 Детальні дані")
